@@ -1,0 +1,41 @@
+document = { SOI ~ statement ~ (("\r" | "\n")+ ~ statement)* ~ ("\r" | "\n")? ~ EOI}
+
+statement = { note | participant | signal | title }
+
+note = {
+  "note" ~ (
+    (placement ~ actor)
+    | (over ~ actor ~ ("," ~ actor)?)
+  ) ~ ":" ~ message
+}
+
+participant = { "participant" ~ actor ~ ("as" ~ actor)?}
+
+signal = { actor ~ signaltype ~ actor ~ ":" ~ message}
+
+signaltype = @{ linetype ~ arrowtype? }
+
+title = { "title" ~ ":"? ~ message }
+
+linetype = { dotline | line }
+arrowtype = { openarrow | arrow }
+
+placement = { leftof | rightof }
+leftof = { "left of" }
+rightof = { "right of" }
+over = { "over" }
+
+actor = { actor_quoted | actor_simple }
+actor_quoted = ${ QUOTE ~ actor_quoted_inner ~ QUOTE }
+actor_quoted_inner = @{ (!("\"") ~ ANY)* }
+actor_simple = @{ (!("-" | ">" | ":" | "," | "\r" | "\n" | " ") ~ ANY)+ }
+message = @{(!("\r" | "\n") ~ ANY)+}
+
+dotline = {"--"}
+line = {"-"}
+arrow = {">"}
+openarrow = {">>"}
+
+QUOTE = _{ "\"" }
+WHITESPACE = _{ " " | "\t"}
+COMMENT = _{ "#" ~ (!("\r" | "\n") ~ ANY)* ~ ("\r" | "\n")+ }

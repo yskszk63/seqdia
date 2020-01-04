@@ -14,7 +14,7 @@ Left ->> Right: Open arrow
 
 ![Example](./example.svg)
 
-see [demo](https://yskszk63.github.io/seqdia/)
+see [demo](https://yskszk63.github.io/seqdia/#/v1/8Rh0aXRsZSBFeGFtcGxlIGRpYWdyYW0KCkxlZnQgLT4gUmlnaDogdG8JACF0CgYAABgAACAAARgAAAkAAy4ABS8AY0RvdHRlZBYAEj4WANB0OiBPcGVuIGFycm93)
 
 ## Features
 

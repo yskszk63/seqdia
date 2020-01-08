@@ -21,14 +21,12 @@ jobs:
         cargo install wasm-pack
         wasm-pack build
         (cd pkg && npm link)
-        (cd www && npm install && npm link seqdia && npm build)
+        (cd www && npm install && npm link seqdia && npm run build)
     - run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git status
         git add docs
         git commit -m'deploy ghpages'
-        git push
     - uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -7,7 +7,7 @@ on:
     paths:
     - 'Cargo.*'
     - 'src/**'
-    - 'www/***'
+    - 'www/**'
 
 jobs:
   build:

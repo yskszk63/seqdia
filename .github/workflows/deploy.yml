@@ -22,7 +22,8 @@ jobs:
         wasm-pack build
         (cd pkg && npm link)
         (cd www && npm install && npm link seqdia && npm build)
-    - run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
         git status
         git add .
         git commit -m'deploy ghpages'

@@ -22,11 +22,15 @@ jobs:
         wasm-pack build
         (cd pkg && npm link)
         (cd www && npm install && npm link seqdia && npm build)
-        git config --global user.email "you@example.com"
-        git config --global user.name "Your Name"
+    - run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
         git status
-        git add .
+        git add docs
         git commit -m'deploy ghpages'
         git push
+    - uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
 # vim: set ts=2 sts=2 sw=2:

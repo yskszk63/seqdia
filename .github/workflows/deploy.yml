@@ -16,6 +16,8 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - run: |
+        mkdir ~/.npm
+        npm config set prefix ~/.npm
         cargo install wasm-pack
         wasm-pack build
         (cd pkg && npm link)

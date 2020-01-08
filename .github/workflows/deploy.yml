@@ -18,5 +18,12 @@ jobs:
     - run: |
         cargo install wasm-pack
         wasm-pack build
+        (cd pkg && npm link)
+        (cd www && npm install && npm link seqdia && npm build)
+    - run: |
+        git status
+        git add .
+        git commit -m'deploy ghpages'
+        git push
 
 # vim: set ts=2 sts=2 sw=2:

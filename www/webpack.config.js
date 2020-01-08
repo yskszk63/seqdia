@@ -15,7 +15,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'index.html',
     }),
-    new FaviconsWebpackPlugin()
+    new FaviconsWebpackPlugin({
+      prefix: 'assets/',
+      publicPath: '',
+    })
   ],
   module: {
     rules: [

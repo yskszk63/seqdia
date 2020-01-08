@@ -1,6 +1,8 @@
 # seqdia
 Sequence diagram editor
 
+![Github Actions](https://github.com/yskszk63/seqdia/workflows/deploy/badge.svg)
+
 ## example
 
 ```

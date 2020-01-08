@@ -21,7 +21,7 @@ jobs:
         wasm-pack build
         (cd pkg && npm link)
         rm -f docs/*.wasm
-        (cd www && npm install && npm link seqdia && npm run build)
+        (cd www && npm install && npm link seqdia && npm run build -- --mode=production)
     - run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"

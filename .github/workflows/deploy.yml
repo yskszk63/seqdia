@@ -1,14 +1,13 @@
 name: deploy
 
-on: push
-#on:
-#  push:
-#    branches:
-#    - master
-#    paths:
-#    - 'Cargo.*'
-#    - 'src/**'
-#    - 'www/***'
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'Cargo.*'
+    - 'src/**'
+    - 'www/***'
 
 jobs:
   build:
@@ -21,6 +20,7 @@ jobs:
         cargo install wasm-pack
         wasm-pack build
         (cd pkg && npm link)
+        rm -f docs/*.wasm
         (cd www && npm install && npm link seqdia && npm run build)
     - run: |
         git config --local user.email "action@github.com"

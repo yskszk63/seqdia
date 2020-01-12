@@ -1,14 +1,13 @@
 name: deploy
 
-on: push
-#on:
-#  push:
-#    branches:
-#    - master
-#    paths:
-#    - 'Cargo.*'
-#    - 'src/**'
-#    - 'www/**'
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'Cargo.*'
+    - 'src/**'
+    - 'www/**'
 
 jobs:
   build:
@@ -34,7 +33,7 @@ jobs:
         git config --local user.name "GitHub Action"
         git add docs
         git commit -m'deploy ghpages'
-        git push 'git@github.com:yskszk63/seqdia.git' HEAD:$GITHUB_REF
+        git push 'git@github.com:yskszk63/seqdia.git' HEAD:master
       env:
         SSH_KEY: ${{ secrets. GH_SSH_KEY }}
 

@@ -24,6 +24,8 @@ jobs:
         rm -f docs/*.wasm
         (cd www && npm install && npm link seqdia && npm run build -- --mode=production)
     - run: |
+        mkdir ~/.ssh
+        chmod 700 ~/.ssh
         echo "$SSH_KEY" > ~/.ssh/id_ed25519
         git remote show origin
         git remote set origin 'git@github.com:yskszk63/seqdia.git'

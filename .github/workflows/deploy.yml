@@ -33,6 +33,6 @@ jobs:
         git commit -m'deploy ghpages'
         git push
       env:
-        SSH_KEY: ${{ secret. GH_SSH_KEY }}
+        SSH_KEY: ${{ secrets. GH_SSH_KEY }}
 
 # vim: set ts=2 sts=2 sw=2:

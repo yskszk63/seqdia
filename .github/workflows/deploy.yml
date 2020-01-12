@@ -23,12 +23,18 @@ jobs:
         rm -f docs/*.wasm
         (cd www && npm install && npm link seqdia && npm run build -- --mode=production)
     - run: |
+        mkdir ~/.ssh
+        chmod 700 ~/.ssh
+        echo "$SSH_KEY" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        git remote show origin
+        git remote set-url origin 'git@github.com:yskszk63/seqdia.git'
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add docs
         git commit -m'deploy ghpages'
-    - uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        git push 'git@github.com:yskszk63/seqdia.git' HEAD:master
+      env:
+        SSH_KEY: ${{ secrets. GH_SSH_KEY }}
 
 # vim: set ts=2 sts=2 sw=2:

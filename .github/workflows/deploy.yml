@@ -28,7 +28,7 @@ jobs:
         chmod 700 ~/.ssh
         echo "$SSH_KEY" > ~/.ssh/id_ed25519
         git remote show origin
-        git remote set origin 'git@github.com:yskszk63/seqdia.git'
+        git remote set-url origin 'git@github.com:yskszk63/seqdia.git'
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add docs

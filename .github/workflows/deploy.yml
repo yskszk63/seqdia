@@ -33,7 +33,7 @@ jobs:
         git config --local user.name "GitHub Action"
         git add docs
         git commit -m'deploy ghpages'
-        git push
+        git push 'git@github.com:yskszk63/seqdia.git' HEAD:$GITHUB_REF
       env:
         SSH_KEY: ${{ secrets. GH_SSH_KEY }}
 

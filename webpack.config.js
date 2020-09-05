@@ -1,5 +1,4 @@
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const path = require("path");
 
@@ -8,7 +7,7 @@ const docs = path.resolve(__dirname, "docs");
 module.exports = {
   mode: "production",
   entry: {
-      index: "./bootstrap.js",
+      index: ["./index.js", "./app.css"],
   },
   output: {
     path: docs,
@@ -22,13 +21,14 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          "style-loader",
           {
-            loader: "css-loader",
+            loader: "file-loader",
             options: {
-              url: false
-            }
-          }
+              name: "bundle.css",
+            },
+          },
+          "extract-loader",
+          "css-loader",
         ]
       }
     ]

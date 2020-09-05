@@ -3,11 +3,16 @@ mod parse;
 
 use std::fmt;
 use std::hash::Hasher as _;
+use std::rc::Rc;
+use std::sync::Mutex;
 
 use lz4_compression::prelude::{compress, decompress};
 use wasm_bindgen::prelude::*;
 use unicode_width::UnicodeWidthStr;
 use pest::error::LineColLocation;
+use js_sys::{Object, JsString, Reflect};
+use web_sys::Element;
+use thiserror::Error;
 
 use paper::{MarkerEnd, Paper, Path, Rect, Text, TextAnchor};
 use parse::{
@@ -24,9 +29,11 @@ const ACTOR_PADDING: isize = 10;
 const SIGNAL_MARGIN: isize = 10;
 const SIGNAL_PADDING: isize = 10;
 
+/*
 const NOTE_MARGIN: isize = 10;
 const NOTE_PADDING: isize = 5;
 const NOTE_OVERLAP: isize = 15;
+*/
 
 const TITLE_MARGIN: isize = 0;
 const TITLE_PADDING: isize = 5;
@@ -38,8 +45,8 @@ fn text_bbox(text: &str) -> Rectangle {
     Rectangle::new(0, 0, width, FONT_SIZE)
 }
 
-#[derive(Debug, serde::Serialize)]
-pub(crate) struct ParseError {
+#[derive(Debug, Error, Clone)]
+struct ParseError {
     line: Option<usize>,
     message: String,
 }
@@ -217,7 +224,7 @@ impl Rectangle {
 #[derive(Debug)]
 enum SignalKind<'i> {
     Signal(Signal<'i>),
-    Note(Note<'i>),
+    //Note(Note<'i>),
 }
 
 #[derive(Debug, Default)]
@@ -457,7 +464,7 @@ impl<'i> SequenceDiagram<'i> {
                         );
                     }
                 }
-                _ => {}
+                //_ => {}
             }
         }
     }
@@ -548,67 +555,173 @@ impl<'i> SequenceDiagram<'i> {
     }
 }
 
-#[derive(serde::Serialize)]
-pub struct PickleAndGen {
-    pickled: String,
-    svg: String,
-}
-
-#[derive(serde::Serialize)]
-pub struct LoadAndGen {
-    text: String,
-    svg: String,
-}
-
-#[wasm_bindgen]
-pub fn pickle_and_gen(text: &str) -> Result<JsValue, JsValue> {
+fn pickle_and_gen(text: &str) -> Result<(String, String), ParseError> {
     let compressed = compress(text.as_bytes());
     let pickled = base64::encode_config(
         &compressed,
         base64::Config::new(base64::CharacterSet::UrlSafe, false),
     );
     let pickled = format!("/v1/{}", pickled);
-
     let svg = generate(text)?;
 
-    Ok(JsValue::from_serde(&PickleAndGen { pickled, svg })
-        .map_err(|e| JsValue::from_str(&e.to_string()))?)
+    Ok((pickled, svg))
 }
 
-#[wasm_bindgen]
-pub fn load_and_gen(hash: &str) -> Result<JsValue, JsValue> {
+#[derive(Error, Debug)]
+enum LoadAndGenError {
+    #[error("unexpected hash")]
+    UnexpectedHash,
+
+    #[error("decode error")]
+    DecodeError(#[from] base64::DecodeError),
+
+    #[error("decompress error")]
+    DecompressError(lz4_compression::decompress::Error),
+
+    #[error("from utf8 error")]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
+
+    #[error("parse error")]
+    ParseError(#[from] ParseError),
+}
+
+fn load_and_gen(hash: &str) -> Result<(String, String), LoadAndGenError> {
     if hash.is_empty() {
-        return Err(JsValue::from_str("unexpected hash"));
+        return Ok(("".to_owned(), "".to_owned()));
     }
     let mut parts = hash.split('/');
     parts.next();
     match parts.next() {
         Some("v1") => {}
-        _ => return Err(JsValue::from_str("unexpected hash")),
+        _ => return Err(LoadAndGenError::UnexpectedHash),
     }
     let pickled = if let Some(text) = parts.next() {
         text
     } else {
-        return Err(JsValue::from_str("unexpected hash"));
+        return Err(LoadAndGenError::UnexpectedHash);
     };
     let compressed = base64::decode_config(
         &pickled,
         base64::Config::new(base64::CharacterSet::UrlSafe, false),
-    )
-    .map_err(|e| JsValue::from_str(&e.to_string()))?;
-    let text = decompress(&compressed).map_err(|e| JsValue::from_str(&format!("{:?}", e)))?;
-    let text = String::from_utf8(text).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    )?;
+    let text = decompress(&compressed).map_err(LoadAndGenError::DecompressError)?;
+    let text = String::from_utf8(text)?;
 
     let svg = generate(&text)?;
 
-    Ok(JsValue::from_serde(&LoadAndGen { text, svg })
-        .map_err(|e| JsValue::from_str(&e.to_string()))?)
+    Ok((text, svg))
 }
 
-#[wasm_bindgen]
-pub fn generate(text: &str) -> Result<String, JsValue> {
-    let result = SequenceDiagram::parse(text).map_err(|e| JsValue::from_serde(&e).unwrap_or_else(|e| JsValue::from_str(&e.to_string())))?;
+fn generate(text: &str) -> Result<String, ParseError> {
+    let result = SequenceDiagram::parse(text)?;
     Ok(result.draw())
+}
+
+#[wasm_bindgen(module = "codemirror")]
+extern "C" {
+    type CodeMirror;
+
+    fn fromTextArea(element: &web_sys::Element, options: &JsValue) -> CodeMirror;
+
+    #[wasm_bindgen(method)]
+    fn on(this: &CodeMirror, when: &JsValue, f: &JsValue);
+
+    #[wasm_bindgen(method)]
+    fn getValue(this: &CodeMirror) -> String;
+
+    #[wasm_bindgen(method)]
+    fn setValue(this: &CodeMirror, value: &str);
+
+    #[wasm_bindgen(method)]
+    fn operation(this: &CodeMirror, f: &dyn Fn());
+
+    #[wasm_bindgen(method)]
+    fn addLineWidget(this: &CodeMirror, line: usize, e: &Element, options: &JsValue) -> Element;
+
+    #[wasm_bindgen(method)]
+    fn removeLineWidget(this: &CodeMirror, e: &Element);
+}
+
+#[wasm_bindgen(start)]
+pub fn start() -> Result<(), JsValue> {
+    #[cfg(debug_assertions)]
+    console_error_panic_hook::set_once();
+    wasm_logger::init(Default::default());
+
+    let window = web_sys::window().unwrap();
+    let document = window.document().unwrap();
+    let body = document.body().unwrap();
+    let output = document.query_selector("output").unwrap().unwrap();
+
+    let editor = unsafe {
+        let options = Object::new();
+        Reflect::set(&options, &JsString::from("lineNumbers"), &JsValue::TRUE).unwrap();
+        Reflect::set(&options, &JsString::from("lineWrapping"), &JsValue::TRUE).unwrap();
+        fromTextArea(&document.query_selector("textarea").unwrap().unwrap(), &options)
+    };
+    let editor = Rc::new(editor);
+
+    let editor2 = editor.clone();
+    let widgets: Rc<Mutex<Vec<Element>>> = Rc::new(Mutex::new(vec![]));
+    let document = Rc::new(document);
+    let update_annotations = move |infos: Vec<ParseError>| {
+        let editor = editor2.clone();
+        let widgets = widgets.clone();
+        let document = document.clone();
+        editor2.operation(&move || {
+            let mut widgets = widgets.lock().unwrap();
+            for widget in widgets.iter() {
+                editor.removeLineWidget(&widget);
+            }
+            widgets.clear();
+
+            for info in &infos {
+                let message = &info.message;
+                let line = info.line.unwrap_or(0);
+
+                let msg = document.create_element("pre").unwrap();
+                msg.set_text_content(Some(message));
+                msg.class_list().add_1("error-msg").unwrap();
+
+                let opt = Object::new();
+                unsafe {
+                    Reflect::set(&opt, &JsString::from("coverGutter"), &JsValue::TRUE).unwrap();
+                    Reflect::set(&opt, &JsString::from("noHScroll"), &JsValue::TRUE).unwrap();
+                };
+                let widget = editor.addLineWidget(line - 1, &msg, &opt);
+                widgets.push(widget);
+            }
+        });
+    };
+
+    let hash = window.location().hash().unwrap();
+    if hash.len() > 1 {
+        let (text, svg) = load_and_gen(&hash).unwrap();
+        editor.setValue(&text);
+        output.set_inner_html(&svg);
+    }
+
+    let c = Closure::wrap(Box::new(move |cm: CodeMirror, _| {
+        let text = cm.getValue();
+        body.class_list().add_1("incomplete").unwrap();
+        let (pickled, svg) = match pickle_and_gen(&text) {
+            Ok((pickled, svg)) => (pickled, svg),
+            Err(e) => {
+                log::error!("{:?}", e);
+                update_annotations(vec![e]);
+                return;
+            }
+        };
+        body.class_list().remove_1("incomplete").unwrap();
+        update_annotations(vec![]);
+        window.location().set_hash(&pickled).unwrap();
+        output.set_inner_html(&svg);
+    }) as Box<dyn Fn(CodeMirror, JsValue)>);
+
+    editor.on(&JsString::from("change"), c.as_ref());
+    c.forget();
+
+    Ok(())
 }
 
 /*

@@ -682,9 +682,11 @@ pub fn start() -> Result<(), JsValue> {
                 let message = &info.message;
                 let line = info.line.unwrap_or(0);
 
-                let msg = document.create_element("pre").unwrap();
-                msg.set_text_content(Some(message));
+                let pre = document.create_element("pre").unwrap();
+                pre.set_text_content(Some(message));
+                let msg = document.create_element("div").unwrap();
                 msg.class_list().add_1("error-msg").unwrap();
+                msg.append_child(&pre).unwrap();
 
                 let opt = Object::new();
                 unsafe {

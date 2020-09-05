@@ -17,10 +17,10 @@ jobs:
         curl -L $WASM_PACK_URL | tar -zxf -
         cp ./wasm-pack-*/wasm-pack ~/.local/bin
         echo "::add-path::$HOME/.local/bin"
-        wasm-pack -V
       env:
         WASM_PACK_URL: 'https://github.com/rustwasm/wasm-pack/releases/download/v0.9.1/wasm-pack-v0.9.1-x86_64-unknown-linux-musl.tar.gz'
     - run: |
+        wasm-pack -V
         mkdir ~/.npm
         rm -f docs/*.wasm
         npm config set prefix ~/.npm

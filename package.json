@@ -4,7 +4,7 @@
   "description": "Sequence diagram editor",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
+    "build": "rimraf docs pkg && webpack",
     "start": "webpack-dev-server -d --open"
   },
   "repository": {

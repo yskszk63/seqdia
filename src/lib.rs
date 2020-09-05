@@ -19,6 +19,9 @@ use parse::{
     Actor, ArrowType, Document, LineType, Note, Participant, Signal, Statement, Title, Visitor,
 };
 
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 const FONT_SIZE: isize = 16; // FIXME
 
 const DIAGRAM_MARGIN: isize = 10;

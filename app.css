@@ -1,16 +1,22 @@
 @import '~codemirror/lib/codemirror.css';
 
-:root { font-family: monospace; }
+:root {
+    font-family: monospace;
+}
+
 body {
     margin: 0;
 }
+
 body svg {
     transition: filter 0.5s ease;
     filter: none;
 }
+
 body.incomplete svg {
     filter: blur(2px) opacity(50%);
 }
+
 main {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -18,18 +24,22 @@ main {
     width: 100vw;
     height: 100vh;
 }
+
 @media screen and (max-width: 786px) {
     main {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
     }
 }
+
 main .CodeMirror {
     height: 100%;
 }
+
 main output {
     overflow: auto;
 }
+
 .error-msg {
     color: red;
     padding: 1ex;
@@ -42,6 +52,7 @@ main output {
     box-shadow: 5px 5px 20px rgba(0,0,0,0.4);
     position: relative;
 }
+
 .error-msg:before {
     content: "";
     position: absolute;
@@ -53,6 +64,7 @@ main output {
     border-left: 1em solid transparent;
     z-index: -1;
 }
+
 .error-msg:after {
     content: "";
     position: absolute;

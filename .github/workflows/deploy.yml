@@ -2,8 +2,8 @@ name: deploy
 
 on:
   push:
-    branches:
-    - master
+    #branches:
+    #- master
     paths-ignore:
     - 'docs/**'
 
@@ -32,5 +32,6 @@ jobs:
         git push 'git@github.com:yskszk63/seqdia.git' HEAD:master
       env:
         SSH_KEY: ${{ secrets. GH_SSH_KEY }}
+      if: github.ref == 'refs/heads/master'
 
 # vim: set ts=2 sts=2 sw=2:

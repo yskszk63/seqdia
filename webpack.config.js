@@ -34,7 +34,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new CopyWebpackPlugin(['index.html']),
+    new CopyWebpackPlugin(['index.html', 'logo.png']),
     new WasmPackPlugin({
       crateDirectory: __dirname,
     }),

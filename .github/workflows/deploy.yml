@@ -4,37 +4,31 @@ on:
   push:
     branches:
     - master
-    paths:
-    - 'Cargo.*'
-    - 'src/**'
-    - 'www/**'
+    paths-ignore:
+    - 'docs/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+    - run: |
+        mkdir -p ~/.local/bin
+        curl -L $WASM_PACK_URL | tar -zxf -
+        cp ./wasm-pack-*/wasm-pack ~/.local/bin
+        echo "::add-path::$HOME/.local/bin"
+      env:
+        WASM_PACK_URL: 'https://github.com/rustwasm/wasm-pack/releases/download/v0.9.1/wasm-pack-v0.9.1-x86_64-unknown-linux-musl.tar.gz'
     - run: |
         mkdir ~/.npm
-        npm config set prefix ~/.npm
-        cargo install wasm-pack
-        wasm-pack build
-        (cd pkg && npm link)
         rm -f docs/*.wasm
-        (cd www && npm install && npm link seqdia && npm run build -- --mode=production)
-    - run: |
-        mkdir ~/.ssh
-        chmod 700 ~/.ssh
-        echo "$SSH_KEY" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        git remote show origin
-        git remote set-url origin 'git@github.com:yskszk63/seqdia.git'
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add docs
-        git commit -m'deploy ghpages'
-        git push 'git@github.com:yskszk63/seqdia.git' HEAD:master
-      env:
-        SSH_KEY: ${{ secrets. GH_SSH_KEY }}
+        npm config set prefix ~/.npm
+        npm install
+        npm run build
+    - uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs
+      if: github.ref == 'refs/heads/master'
 
 # vim: set ts=2 sts=2 sw=2:

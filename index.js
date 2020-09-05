@@ -1,4 +1,4 @@
-import * as wasm from "seqdia";
+import * as wasm from "./pkg/index";
 import * as cm from "codemirror";
 import "codemirror/lib/codemirror.css"
 

@@ -4,24 +4,20 @@ on:
   push:
     branches:
     - master
-    paths:
-    - 'Cargo.*'
-    - 'src/**'
-    - 'www/**'
+    paths-ignore:
+    - 'docs/**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - run: |
         mkdir ~/.npm
-        npm config set prefix ~/.npm
-        cargo install wasm-pack
-        wasm-pack build
-        (cd pkg && npm link)
         rm -f docs/*.wasm
-        (cd www && npm install && npm link seqdia && npm run build -- --mode=production)
+        npm config set prefix ~/.npm
+        npm install
+        npm build
     - run: |
         mkdir ~/.ssh
         chmod 700 ~/.ssh

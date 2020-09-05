@@ -13,6 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
+        cargo install wasm-pack
         mkdir ~/.npm
         rm -f docs/*.wasm
         npm config set prefix ~/.npm

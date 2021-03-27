@@ -1,3 +1,4 @@
+#![allow(clippy::upper_case_acronyms)]
 use pest::iterators::Pair;
 use pest::Parser as _;
 
@@ -44,7 +45,7 @@ fn parse_placement<'i>(pair: Pair<Rule>, actor: Actor<'i>, message: &'i str) -> 
 fn parse_statement(pair: Pair<Rule>) -> Statement {
     match pair.as_rule() {
         Rule::title => {
-            let title = Title::new(pair.into_inner().as_str().into());
+            let title = Title::new(pair.into_inner().as_str());
             Statement::Title(title)
         }
 
@@ -120,7 +121,7 @@ fn parse_document(pair: Pair<Rule>) -> Vec<Statement> {
     }
 }
 
-pub(crate) fn parse(input: &str) -> Result<Document, pest::error::Error<super::parse::Rule>> {
+pub(crate) fn parse(input: &str) -> Result<Document, pest::error::Error<Rule>> {
     let r = MyParser::parse(Rule::document, input)?;
     let mut result = vec![];
     for pair in r {

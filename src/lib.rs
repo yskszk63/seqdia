@@ -6,13 +6,13 @@ use std::hash::Hasher as _;
 use std::rc::Rc;
 use std::sync::Mutex;
 
+use js_sys::{JsString, Object, Reflect};
 use lz4_compression::prelude::{compress, decompress};
-use wasm_bindgen::prelude::*;
-use unicode_width::UnicodeWidthStr;
 use pest::error::LineColLocation;
-use js_sys::{Object, JsString, Reflect};
-use web_sys::Element;
 use thiserror::Error;
+use unicode_width::UnicodeWidthStr;
+use wasm_bindgen::prelude::*;
+use web_sys::Element;
 
 use paper::{MarkerEnd, Paper, Path, Rect, Text, TextAnchor};
 use parse::{
@@ -44,7 +44,8 @@ const TITLE_PADDING: isize = 5;
 const SELF_SIGNAL_WIDTH: isize = 20;
 
 fn text_bbox(text: &str) -> Rectangle {
-    let width = UnicodeWidthStr::width(text) as isize * (FONT_SIZE / 2) + ((text.len() / 5 * 6) as isize);
+    let width =
+        UnicodeWidthStr::width(text) as isize * (FONT_SIZE / 2) + ((text.len() / 5 * 6) as isize);
     Rectangle::new(0, 0, width, FONT_SIZE)
 }
 
@@ -185,7 +186,7 @@ impl<'i> Visitor<'i> for LayoutCalculator {
         let mut add_actor = |actor: &Actor<'i>, display_name: &Option<Actor<'i>>| {
             if ctx.pos_by_actor(actor).is_none() {
                 let x = ctx.actors.iter().map(|(_, _, r)| r.w).sum::<isize>();
-                let display_name = display_name.as_ref().unwrap_or_else(|| actor).clone();
+                let display_name = display_name.as_ref().unwrap_or(actor).clone();
                 let bbox = text_bbox(display_name.as_ref());
                 ctx.actors.push((
                     actor.clone(),
@@ -265,9 +266,17 @@ impl Wobble {
         let r2 = (((self.hasher.finish() % 60) as f32) / 100.0) + 0.2;
         self.hasher.write_u32(r2.to_bits());
 
-        let xfactor = if self.hasher.finish() % 2 == 0 {factor} else {-factor};
+        let xfactor = if self.hasher.finish() % 2 == 0 {
+            factor
+        } else {
+            -factor
+        };
         self.hasher.write_u32(xfactor.to_bits());
-        let yfactor = if self.hasher.finish() % 2 == 0 {factor} else {-factor};
+        let yfactor = if self.hasher.finish() % 2 == 0 {
+            factor
+        } else {
+            -factor
+        };
         self.hasher.write_u32(yfactor.to_bits());
 
         let p1x = ((x2 - x1) as f32) * r1 + (x1 as f32) + xfactor;
@@ -297,12 +306,7 @@ impl<'i> SequenceDiagram<'i> {
         let title_height =
             layout.title.as_ref().map(|(_, r)| r.h).unwrap_or_else(|| 0) + DIAGRAM_MARGIN;
         let signal_height = layout.signals.iter().map(|(_, r)| r.h).sum::<isize>();
-        let actor_height = layout
-            .actors
-            .iter()
-            .map(|(_, _, r)| r.h)
-            .max()
-            .unwrap_or_else(|| 0);
+        let actor_height = layout.actors.iter().map(|(_, _, r)| r.h).max().unwrap_or(0);
 
         let mut paper = Paper::builder()
             .w(layout
@@ -310,7 +314,7 @@ impl<'i> SequenceDiagram<'i> {
                 .iter()
                 .map(|(_, _, r)| r.x + r.w)
                 .max()
-                .unwrap_or_else(|| 0))
+                .unwrap_or(0))
             .h(title_height + signal_height + (actor_height * 2))
             .build();
         let mut w = Wobble::default();
@@ -325,8 +329,8 @@ impl<'i> SequenceDiagram<'i> {
     fn layout(&self) -> Layout {
         let mut layout = Layout::default();
 
-        self.document.accept(&mut LayoutTitle, &mut layout);
-        self.document.accept(&mut LayoutCalculator, &mut layout);
+        self.document.accept(&LayoutTitle, &mut layout);
+        self.document.accept(&LayoutCalculator, &mut layout);
 
         layout
     }
@@ -385,12 +389,7 @@ impl<'i> SequenceDiagram<'i> {
 
     fn draw_signals(&self, paper: &mut Paper, layout: &Layout, w: &mut Wobble) {
         let y = layout.title.as_ref().map(|(_, r)| r.h).unwrap_or_else(|| 0) + DIAGRAM_MARGIN;
-        let y2 = layout
-            .actors
-            .iter()
-            .map(|(_, _, r)| r.h)
-            .max()
-            .unwrap_or_else(|| 0);
+        let y2 = layout.actors.iter().map(|(_, _, r)| r.h).max().unwrap_or(0);
 
         for (signal, rectangle) in &layout.signals {
             match signal {
@@ -466,12 +465,12 @@ impl<'i> SequenceDiagram<'i> {
                             w,
                         );
                     }
-                }
-                //_ => {}
+                } //_ => {}
             }
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn draw_text(
         &self,
         paper: &mut Paper,
@@ -525,16 +524,19 @@ impl<'i> SequenceDiagram<'i> {
         let h = rectangle.h - 2 * margin;
 
         //paper.push(Rect::new(x, y, w, h));
-        paper.push(Path::new(format!("M{},{}{}{}{}{}",
-                    x, y,
-                    ww.wobble(x, y, x + w, y),
-                    ww.wobble(x + w, y, x + w, y + h),
-                    ww.wobble(x + w, y + h, x, y + h),
-                    ww.wobble(x, y + h, x, y),
-                    )));
+        paper.push(Path::new(format!(
+            "M{},{}{}{}{}{}",
+            x,
+            y,
+            ww.wobble(x, y, x + w, y),
+            ww.wobble(x + w, y, x + w, y + h),
+            ww.wobble(x + w, y + h, x, y + h),
+            ww.wobble(x, y + h, x, y),
+        )));
         paper.push(Text::new(x + padding, y + padding, text.to_string()));
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn draw_line(
         &self,
         paper: &mut Paper,
@@ -656,11 +658,14 @@ pub fn start() -> Result<(), JsValue> {
     let body = document.body().unwrap();
     let output = document.query_selector("output").unwrap().unwrap();
 
-    let editor = unsafe {
+    let editor = {
         let options = Object::new();
         Reflect::set(&options, &JsString::from("lineNumbers"), &JsValue::TRUE).unwrap();
         Reflect::set(&options, &JsString::from("lineWrapping"), &JsValue::TRUE).unwrap();
-        fromTextArea(&document.query_selector("textarea").unwrap().unwrap(), &options)
+        fromTextArea(
+            &document.query_selector("textarea").unwrap().unwrap(),
+            &options,
+        )
     };
     let editor = Rc::new(editor);
 
@@ -689,10 +694,8 @@ pub fn start() -> Result<(), JsValue> {
                 msg.append_child(&pre).unwrap();
 
                 let opt = Object::new();
-                unsafe {
-                    Reflect::set(&opt, &JsString::from("coverGutter"), &JsValue::TRUE).unwrap();
-                    Reflect::set(&opt, &JsString::from("noHScroll"), &JsValue::TRUE).unwrap();
-                };
+                Reflect::set(&opt, &JsString::from("coverGutter"), &JsValue::TRUE).unwrap();
+                Reflect::set(&opt, &JsString::from("noHScroll"), &JsValue::TRUE).unwrap();
                 let widget = editor.addLineWidget(line - 1, &msg, &opt);
                 widgets.push(widget);
             }

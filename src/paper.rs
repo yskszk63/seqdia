@@ -35,6 +35,7 @@ impl PaperBuilder {
 #[derive(Debug)]
 pub(crate) enum TextAnchor {
     Start,
+    #[allow(dead_code)]
     Middle,
     End,
 }
@@ -78,11 +79,7 @@ impl Text {
         writer.write_attribute_fmt("y", format_args!("{}", self.y));
         writer.write_attribute(
             "text-anchor",
-            match self
-                .text_anchor
-                .as_ref()
-                .unwrap_or_else(|| &TextAnchor::Start)
-            {
+            match self.text_anchor.as_ref().unwrap_or(&TextAnchor::Start) {
                 TextAnchor::Start => "start",
                 TextAnchor::Middle => "middle",
                 TextAnchor::End => "end",
@@ -197,10 +194,12 @@ impl Rect {
         }
     }
 
+    /*
     pub(crate) fn with_r(self, r: usize) -> Self {
         let r = Some(r);
         Self { r, ..self }
     }
+    */
 
     pub(crate) fn with_stroke(self, stroke: impl Into<String>) -> Self {
         let stroke = Some(stroke.into());
@@ -234,8 +233,8 @@ impl Rect {
         writer.write_attribute_fmt("y", format_args!("{}", self.y));
         writer.write_attribute_fmt("width", format_args!("{}", self.width));
         writer.write_attribute_fmt("height", format_args!("{}", self.height));
-        writer.write_attribute_fmt("rx", format_args!("{}", self.r.unwrap_or_else(|| 0)));
-        writer.write_attribute_fmt("ry", format_args!("{}", self.r.unwrap_or_else(|| 0)));
+        writer.write_attribute_fmt("rx", format_args!("{}", self.r.unwrap_or(0)));
+        writer.write_attribute_fmt("ry", format_args!("{}", self.r.unwrap_or(0)));
         writer.write_attribute_fmt(
             "fill",
             format_args!(
@@ -255,7 +254,7 @@ impl Rect {
         );
         writer.write_attribute_fmt(
             "stroke-width",
-            format_args!("{}px", self.stroke_width.unwrap_or_else(|| 2)),
+            format_args!("{}px", self.stroke_width.unwrap_or(2)),
         );
         writer.end_element();
     }

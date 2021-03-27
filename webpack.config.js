@@ -6,6 +6,9 @@ const docs = path.resolve(__dirname, "docs");
 
 module.exports = {
   mode: "production",
+  experiments: {
+    asyncWebAssembly: true,
+  },
   entry: {
       index: ["./index.js", "./app.css"],
   },
@@ -34,7 +37,12 @@ module.exports = {
     ]
   },
   plugins: [
-    new CopyWebpackPlugin(['index.html', 'logo.png']),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'index.html' },
+        { from: 'logo.png' },
+      ]
+    }),
     new WasmPackPlugin({
       crateDirectory: __dirname,
     }),

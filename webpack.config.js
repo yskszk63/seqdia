@@ -17,7 +17,9 @@ module.exports = {
     filename: "[name].js",
   },
   devServer: {
-    contentBase: docs,
+    static: {
+      directory: docs,
+    },
   },
   module: {
     rules: [

@@ -4,9 +4,9 @@ version = 3
 
 [[package]]
 name = "base64"
-version = "0.11.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b41b7ea54a0c9d92199de89e20e58d49f02f8e699814ef3fdf266f6f748d15c7"
+checksum = "904dfeac50f3cdaba28fc6f57fdcddb75f49ed61346676a78c4ffe55877802fd"
 
 [[package]]
 name = "block-buffer"
@@ -131,12 +131,9 @@ dependencies = [
 
 [[package]]
 name = "lz4-compression"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "964803df746e44248784afd9e0d1894d12f265f870f2847a1250207323e4a48e"
-dependencies = [
- "byteorder",
-]
+checksum = "761104bf97f13a3caf47d822498a0760a10d00d220148bac2669f63fc3bb8270"
 
 [[package]]
 name = "maplit"

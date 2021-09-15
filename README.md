@@ -2,6 +2,7 @@
 Sequence diagram editor
 
 ![Github Actions](https://github.com/yskszk63/seqdia/workflows/deploy/badge.svg)
+[![dependency status](https://deps.rs/repo/github/yskszk63/seqdia/status.svg)](https://deps.rs/repo/github/yskszk63/seqdia)
 
 ## example
 

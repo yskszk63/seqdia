@@ -6,6 +6,9 @@ use std::hash::Hasher as _;
 use std::rc::Rc;
 use std::sync::Mutex;
 
+use base64::Engine as _;
+use base64::engine::GeneralPurpose;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use js_sys::{JsString, Object, Reflect};
 use lz4_compression::prelude::{compress, decompress};
 use pest::error::LineColLocation;
@@ -18,9 +21,6 @@ use paper::{MarkerEnd, Paper, Path, Rect, Text, TextAnchor};
 use parse::{
     Actor, ArrowType, Document, LineType, Note, Participant, Signal, Statement, Title, Visitor,
 };
-
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 const FONT_SIZE: isize = 16; // FIXME
 
@@ -42,6 +42,8 @@ const TITLE_MARGIN: isize = 0;
 const TITLE_PADDING: isize = 5;
 
 const SELF_SIGNAL_WIDTH: isize = 20;
+
+const ENCODER: GeneralPurpose = URL_SAFE_NO_PAD;
 
 fn text_bbox(text: &str) -> Rectangle {
     let width =
@@ -562,10 +564,7 @@ impl<'i> SequenceDiagram<'i> {
 
 fn pickle_and_gen(text: &str) -> Result<(String, String), ParseError> {
     let compressed = compress(text.as_bytes());
-    let pickled = base64::encode_config(
-        &compressed,
-        base64::Config::new(base64::CharacterSet::UrlSafe, false),
-    );
+    let pickled = ENCODER.encode(&compressed);
     let pickled = format!("/v1/{}", pickled);
     let svg = generate(text)?;
 
@@ -605,10 +604,7 @@ fn load_and_gen(hash: &str) -> Result<(String, String), LoadAndGenError> {
     } else {
         return Err(LoadAndGenError::UnexpectedHash);
     };
-    let compressed = base64::decode_config(
-        &pickled,
-        base64::Config::new(base64::CharacterSet::UrlSafe, false),
-    )?;
+    let compressed = ENCODER.decode(&pickled)?;
     let text = decompress(&compressed).map_err(LoadAndGenError::DecompressError)?;
     let text = String::from_utf8(text)?;
 

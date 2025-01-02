@@ -4,14 +4,33 @@ on:
   push:
     paths-ignore:
     - 'docs/**'
+    branches:
+    - main
   schedule:
     - cron: '10 9 * * 1'
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+    - uses: actions/configure-pages@v5
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
     - run: |
         mkdir -p ~/.local/bin
         curl -L $WASM_PACK_URL | tar -zxf -
@@ -19,16 +38,12 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
       env:
         WASM_PACK_URL: 'https://github.com/rustwasm/wasm-pack/releases/download/v0.13.1/wasm-pack-v0.13.1-x86_64-unknown-linux-musl.tar.gz'
-    - run: |
-        mkdir ~/.npm
-        rm -f docs/*.wasm
-        npm config set prefix ~/.npm
-        npm install
-        npm run build
-    - uses: peaceiris/actions-gh-pages@v3
+    - run: npm ci
+    - run: npm run build
+    - uses: actions/upload-pages-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs
-      if: github.ref == 'refs/heads/master'
+        path: ./docs
+    - id: deployment
+      uses: actions/deploy-pages@v4
 
 # vim: set ts=2 sts=2 sw=2:

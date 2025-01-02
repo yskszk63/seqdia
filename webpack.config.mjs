@@ -1,10 +1,11 @@
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
-const path = require("path");
+import { fileURLToPath } from "node:url";
 
-const docs = path.resolve(__dirname, "docs");
+import CopyWebpackPlugin from "copy-webpack-plugin";
+import WasmPackPlugin from "@wasm-tool/wasm-pack-plugin";
 
-module.exports = {
+const docs = fileURLToPath(import.meta.resolve("./docs"));
+
+const config = {
   mode: "production",
   experiments: {
     asyncWebAssembly: true,
@@ -40,7 +41,9 @@ module.exports = {
       ]
     }),
     new WasmPackPlugin({
-      crateDirectory: __dirname,
+      crateDirectory: import.meta.dirname,
     }),
   ],
 };
+
+export default config;

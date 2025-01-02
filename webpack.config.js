@@ -10,7 +10,7 @@ module.exports = {
     asyncWebAssembly: true,
   },
   entry: {
-      index: ["./index.js", "./app.css"],
+      index: ["./index.js"],
   },
   output: {
     path: docs,
@@ -26,13 +26,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: [
-          {
-            loader: "file-loader",
-            options: {
-              name: "bundle.css",
-            },
-          },
-          "extract-loader",
+          "style-loader",
           "css-loader",
         ]
       }

@@ -18,7 +18,7 @@ jobs:
         cp ./wasm-pack-*/wasm-pack ~/.local/bin
         echo "$HOME/.local/bin" >> $GITHUB_PATH
       env:
-        WASM_PACK_URL: 'https://github.com/rustwasm/wasm-pack/releases/download/v0.9.1/wasm-pack-v0.9.1-x86_64-unknown-linux-musl.tar.gz'
+        WASM_PACK_URL: 'https://github.com/rustwasm/wasm-pack/releases/download/v0.13.1/wasm-pack-v0.13.1-x86_64-unknown-linux-musl.tar.gz'
     - run: |
         mkdir ~/.npm
         rm -f docs/*.wasm
